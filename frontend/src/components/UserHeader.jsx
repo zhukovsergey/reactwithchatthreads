@@ -3,7 +3,7 @@ import { Avatar, Text, Link } from "@chakra-ui/react";
 import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 import { Menu, MenuButton, MenuList, MenuItem, Button } from "@chakra-ui/react";
-import { useToast } from "@chakra-ui/toast";
+import useShowToast from "../hooks/useShowToast";
 import { Portal } from "@chakra-ui/react";
 import { useRecoilValue } from "recoil";
 import { userAtom } from "../atoms/userAtom";
@@ -11,26 +11,30 @@ import { Link as RouterLink } from "react-router-dom";
 import { useState } from "react";
 
 const UserHeader = ({ user = { user } }) => {
+  // под кем логинились
   const currentUser = useRecoilValue(userAtom);
   const [following, setFollowing] = useState(
-    user.followers.includes(currentUser._id)
+    user.followers.includes(currentUser?._id)
   );
-  console.log(following);
-  // под кем логинились
 
-  const toast = useToast();
+  const [updating, setUpdating] = useState(false);
+  const showToast = useShowToast();
   const copyUrl = () => {
     const currentUrl = window.location.href;
     navigator.clipboard.writeText(currentUrl);
-    toast({
-      title: "Скопировано успешно",
-      status: "success",
-      duration: 2000,
-      isClosable: true,
-      position: "top-right",
-    });
+    showToast(
+      "Ссылка скопирована",
+      "Ссылка скопирована в буфер обмена",
+      "success"
+    );
   };
   const handleFollowUnfollow = async () => {
+    if (!currentUser) {
+      showToast("Войдите", "Чтобы подписаться", "error");
+      return;
+    }
+    if (updating) return;
+    setUpdating(true);
     try {
       const res = await fetch(`/api/users/follow/${user._id}`, {
         method: "POST",
@@ -39,11 +43,33 @@ const UserHeader = ({ user = { user } }) => {
         },
       });
       const data = await res.json();
+
       if (data.error) {
-        console.log(data.error);
+        showToast("Ошибка", data.error, "error");
+        return;
       }
+      if (following) {
+        showToast(
+          "Успешно",
+          `Вы отписались от пользователя ${user.name}`,
+          "success"
+        );
+        user.followers.pop();
+      } else {
+        showToast(
+          "Успешно",
+          `Вы подписались на пользователя ${user.name}`,
+          "success"
+        );
+        user.followers.push(currentUser?._id);
+      }
+
+      setFollowing(!following);
     } catch (e) {
+      showToast("Ошибка", e, "error");
       console.log(e);
+    } finally {
+      setUpdating(false);
     }
   };
   return (
@@ -91,7 +117,7 @@ const UserHeader = ({ user = { user } }) => {
         </Link>
       )}
       {currentUser?._id !== user?._id && (
-        <Button size={"sm"} onClick={handleFollowUnfollow}>
+        <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>
           {following ? "Отписаться" : "Подписаться"}
         </Button>
       )}

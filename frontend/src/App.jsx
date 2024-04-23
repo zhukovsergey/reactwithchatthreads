@@ -10,6 +10,7 @@ import { userAtom } from "./atoms/userAtom";
 import { Navigate } from "react-router-dom";
 import LogoutButton from "./components/LogoutButton";
 import UpdateProfilePage from "./pages/UpdateProfilePage";
+import CreatePost from "./components/CreatePost";
 function App() {
   const user = useRecoilValue(userAtom);
 
@@ -23,6 +24,7 @@ function App() {
             user ? (
               <>
                 <UserPage />
+                <CreatePost />
               </>
             ) : (
               <UserPage />

@@ -52,6 +52,8 @@ export default function LoginCard() {
       setUser(data);
     } catch (e) {
       console.log(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,7 +116,7 @@ export default function LoginCard() {
             </FormControl>
             <Stack spacing={10} pt={2}>
               <Button
-                loadingText="Logging in"
+                loadingText="Входим на сайт"
                 size="lg"
                 bg={useColorModeValue("gray.600", "gray.700")}
                 color={"white"}
@@ -122,6 +124,7 @@ export default function LoginCard() {
                   bg: useColorModeValue("gray.700", "gray.800"),
                 }}
                 onClick={handleLogin}
+                isLoading={loading}
               >
                 {loading ? "Отправка данных" : "Войти"}
               </Button>
@@ -133,7 +136,7 @@ export default function LoginCard() {
                   color={"blue.400"}
                   onClick={() => setAuthScreen("signup")}
                 >
-                  Sign up
+                  Зарегистрироваться
                 </Link>
               </Text>
             </Stack>

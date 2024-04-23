@@ -4,11 +4,19 @@ import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCooki
 import { v2 as cloudinary } from "cloudinary";
 
 const getUserProfile = async (req, res) => {
-  const { username } = req.params;
+  const username = req.params.username;
+
   try {
     const user = await User.findOne({ username })
       .select("-password")
       .select("-updatedAt");
+
+    if (!user) {
+      const user = await User.findById({ _id: username })
+        .select("-password")
+        .select("-updatedAt");
+      return res.status(200).json({ user });
+    }
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -115,12 +123,12 @@ const followUnFollowUser = async (req, res) => {
       // Unfollow user
       await User.findByIdAndUpdate(id, { $pull: { followers: req.user._id } });
       await User.findByIdAndUpdate(req.user._id, { $pull: { following: id } });
-      res.status(200).json({ error: "User unfollowed successfully" });
+      res.status(200).json({ message: "Успешно отписались" });
     } else {
       // Follow user
       await User.findByIdAndUpdate(id, { $push: { followers: req.user._id } });
       await User.findByIdAndUpdate(req.user._id, { $push: { following: id } });
-      res.status(200).json({ error: "User followed successfully" });
+      res.status(200).json({ message: "Успешно подписались" });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });

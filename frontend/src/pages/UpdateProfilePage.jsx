@@ -15,13 +15,14 @@ import { userAtom } from "../atoms/userAtom";
 import { useRef, useState } from "react";
 import usePreviewImg from "../hooks/usePreviewImg";
 import useShowToast from "../hooks/useShowToast";
+import { Link } from "react-router-dom";
 
 export default function UpdateProfilePage() {
   const [user, setUser] = useRecoilState(userAtom);
   const [loading, setLoading] = useState(false);
   const showToast = useShowToast();
   const fileRef = useRef();
-  console.log(user);
+
   const [inputs, setInputs] = useState({
     name: user.name,
     username: user.username,
@@ -30,11 +31,13 @@ export default function UpdateProfilePage() {
     bio: user.bio,
     profilePic: user.profilePic,
   });
-
+  const [updating, setUpdating] = useState(false);
   const { handleImageChange, imgUrl } = usePreviewImg();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (updating) return;
+    setUpdating(true);
     try {
       setLoading(true);
       const res = await fetch(`/api/users/update/${user._id}`, {
@@ -56,6 +59,8 @@ export default function UpdateProfilePage() {
     } catch (e) {
       showToast("Ошибка", e, "error");
       setLoading(false);
+    } finally {
+      setUpdating(false);
     }
   };
   return (
@@ -152,18 +157,21 @@ export default function UpdateProfilePage() {
             />
           </FormControl>
           <Stack spacing={6} direction={["column", "row"]}>
-            <Button
-              bg={"red.400"}
-              color={"white"}
-              w="full"
-              _hover={{
-                bg: "red.500",
-              }}
-            >
-              Отмена
-            </Button>
+            <Link to={`/${user.username}`}>
+              <Button
+                bg={"red.400"}
+                color={"white"}
+                w="full"
+                _hover={{
+                  bg: "red.500",
+                }}
+              >
+                Отмена
+              </Button>
+            </Link>
             <Button
               type="submit"
+              isLoading={updating}
               bg={"green.400"}
               color={"white"}
               w="full"

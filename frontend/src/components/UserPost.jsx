@@ -5,7 +5,7 @@ import { BsThreeDots } from "react-icons/bs";
 import Actions from "./Actions";
 import { useState } from "react";
 
-const UserPost = ({ postImg, postTitle, likes, replies }) => {
+const UserPost = ({ post }) => {
   const [liked, setLiked] = useState(false);
   return (
     <Link to="/markzuckerberg/post/1">
